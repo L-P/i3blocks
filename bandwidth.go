@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strconv"
@@ -88,13 +87,7 @@ func getTxBytes(iface string) (int, error) {
 }
 
 func getXxBytes(path string) (int, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return 0, fmt.Errorf("unable to open net stats file: %w", err)
-	}
-	defer f.Close()
-
-	raw, err := io.ReadAll(f)
+	raw, err := os.ReadFile(path)
 	if err != nil {
 		return 0, fmt.Errorf("unable to read net stats file: %w", err)
 	}

@@ -28,18 +28,13 @@ func loadStorage(path string) (storage, error) {
 		return storage{}, nil
 	}
 
-	f, err := os.Open(path)
+	raw, err := os.ReadFile(path)
 	if err != nil {
-		return storage{}, fmt.Errorf("unable to open storage for reading: %w", err)
+		return storage{}, fmt.Errorf("unable to read storage: %w", err)
 	}
-	defer f.Close()
 
-	var (
-		ret storage
-		dec = json.NewDecoder(f)
-	)
-
-	if err := dec.Decode(&ret); err != nil {
+	var ret storage
+	if err := json.Unmarshal(raw, &ret); err != nil {
 		return storage{}, fmt.Errorf("invalid data found in storage: %w", err)
 	}
 
