@@ -6,50 +6,42 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 )
 
-func getStoragePath() string {
+func getStoragePath(name string) string {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		panic(fmt.Errorf("unable to obtain config dir: %w", err))
 	}
 
-	return filepath.Join(dir, "i3blocks.json")
+	return filepath.Join(dir, fmt.Sprintf("i3blocks.%s.json", name))
 }
 
-type storage struct {
-	MTime  time.Time
-	Rx, Tx int
-}
-
-func loadStorage(path string) (storage, error) {
+func loadStorage(path string, dst interface{}) error {
 	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
-		return storage{}, nil
+		return nil
 	}
 
 	raw, err := os.ReadFile(path)
 	if err != nil {
-		return storage{}, fmt.Errorf("unable to read storage: %w", err)
+		return fmt.Errorf("unable to read storage: %w", err)
 	}
 
-	var ret storage
-	if err := json.Unmarshal(raw, &ret); err != nil {
-		return storage{}, fmt.Errorf("invalid data found in storage: %w", err)
+	if err := json.Unmarshal(raw, &dst); err != nil {
+		return fmt.Errorf("invalid data found in storage: %w", err)
 	}
 
-	return ret, nil
+	return nil
 }
 
-func (s *storage) save(path string) error {
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0o600)
+func saveStorage(path string, storage interface{}) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return fmt.Errorf("unable to open storage for writing: %w", err)
 	}
 
-	s.MTime = time.Now()
 	enc := json.NewEncoder(f)
-	if err := enc.Encode(s); err != nil {
+	if err := enc.Encode(storage); err != nil {
 		_ = f.Close()
 		return fmt.Errorf("unable to encode storage: %w", err)
 	}

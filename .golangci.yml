@@ -21,6 +21,7 @@ linters:
     # Disagreements.
     - paralleltest
     - gochecknoglobals
+    - goerr113  # I'm not writing a lib here.
 
     # Deprecated
     - maligned

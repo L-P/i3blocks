@@ -9,16 +9,20 @@ import (
 func main() {
 	flag.Parse()
 	if len(flag.Args()) != 1 {
-		fmt.Printf("usage: %s (bandwidth)\n", os.Args[0])
+		fmt.Printf("usage: %s (bandwidth|loadavg)\n", os.Args[0])
 		os.Exit(1)
 	}
 
 	switch flag.Args()[0] {
+	case "loadavg":
+		if err := loadavg(); err != nil {
+			panic(fmt.Errorf("unable to compute loadavg: %w", err))
+		}
 	case "bandwidth":
 		if err := bandwidth(); err != nil {
 			panic(fmt.Errorf("unable to compute bandwidth: %w", err))
 		}
 	default:
-		panic(fmt.Errorf("unknown subcommand: %s", flag.Args()[0])) // nolint:goerr113
+		panic(fmt.Errorf("unknown subcommand: %s", flag.Args()[0]))
 	}
 }

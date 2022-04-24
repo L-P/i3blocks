@@ -8,7 +8,13 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 )
+
+type bandwidthStorage struct {
+	MTime  time.Time
+	Rx, Tx int
+}
 
 func bandwidth() error {
 	iface, err := getDefaultIface()
@@ -16,9 +22,11 @@ func bandwidth() error {
 		return fmt.Errorf("unable to obtain default iface: %w", err)
 	}
 
-	storagePath := getStoragePath()
-	storage, err := loadStorage(storagePath)
-	if err != nil {
+	var (
+		storage     bandwidthStorage
+		storagePath = getStoragePath("bandwidth")
+	)
+	if err := loadStorage(storagePath, &storage); err != nil {
 		return fmt.Errorf("unable to load storage: %w", err)
 	}
 
@@ -34,13 +42,13 @@ func bandwidth() error {
 
 	dRx := humanize(rx - storage.Rx)
 	dTx := humanize(tx - storage.Tx)
+	fmt.Printf("↓↑ %s/s %s/s\n", dRx, dTx)
 
 	storage.Rx = rx
 	storage.Tx = tx
+	storage.MTime = time.Now()
 
-	fmt.Printf("↓↑ %s/s %s/s\n", dRx, dTx)
-
-	if err := storage.save(storagePath); err != nil {
+	if err := saveStorage(storagePath, storage); err != nil {
 		return fmt.Errorf("unable to save storage: %w", err)
 	}
 
