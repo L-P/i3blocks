@@ -81,7 +81,7 @@ func getDefaultIface() (string, error) {
 		}
 
 		tokens := strings.Split(line, " ")
-		return tokens[len(tokens)-1], nil
+		return tokens[4], nil
 	}
 
 	return string(out), nil
